@@ -4,7 +4,9 @@ import com.vindie.sunshine_scheduler.dto.*;
 import com.vindie.sunshine_scheduler.service.cache.CacheService;
 import com.vindie.sunshine_scheduler.service.engine.Engine;
 import com.vindie.sunshine_scheduler.service.engine.SmalRules;
+import com.vindie.sunshine_scheduler.util.KafkaSender;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -12,27 +14,37 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class SchServiceImpl implements SchService {
 
     private final CacheService cacheService;
+    private final KafkaSender kafkaSender;
 
     @Override
     @Async
     public void startCalculation(SchRequest schRequest, String uuid) {
-        calculate(schRequest);
+        try {
+            calculate(schRequest, uuid);
 
-        SchResult result = new SchResult();
-        result.setMatches(getMatches(schRequest.getAccounts()));
-        result.setMetrics(getMetrics(schRequest.getAccounts()));
-        cacheService.addResult(uuid, result);
+            SchResult result = new SchResult();
+            result.setMatches(getMatches(schRequest.getAccounts()));
+            result.setMetrics(getMetrics(schRequest.getAccounts()));
+            cacheService.addResult(uuid, result);
+            kafkaSender.sendSchProgress(new SchProgress(uuid, SchProgress.Status.DONE));
+        } catch (Exception e) {
+            log.error("Error during sch uuid={}", uuid, e);
+            kafkaSender.sendSchProgress(new SchProgress(uuid, SchProgress.Status.ERROR));
+        }
     }
 
-    private void calculate(SchRequest schRequest) {
+    private void calculate(SchRequest schRequest, String uuid) {
         var engine = new Engine(schRequest.getProperties());
 
         for (SchAccount theAccount : schRequest.getAccounts()) {
+            if (schRequest.getAccounts().size() % 100 == 0)
+                kafkaSender.sendSchProgress(new SchProgress(uuid, SchProgress.Status.IN_PROGRESS));
             for (SchAccount acc : schRequest.getAccounts()) {
                 if (engine.main.test(theAccount, acc)) {
                     addMatchEachOther(theAccount, acc);
