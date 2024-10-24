@@ -1,6 +1,6 @@
 package com.vindie.sunshine_scheduler.service.cache;
 
-import com.vindie.sunshine_scheduler.dto.SchResult;
+import com.vindie.sunshine_scheduler_dto.SchResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

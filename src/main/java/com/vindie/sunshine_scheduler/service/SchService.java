@@ -1,7 +1,6 @@
 package com.vindie.sunshine_scheduler.service;
 
-import com.vindie.sunshine_scheduler.dto.SchRequest;
-import com.vindie.sunshine_scheduler.dto.SchResult;
+import com.vindie.sunshine_scheduler_dto.SchRequest;
 
 public interface SchService {
 

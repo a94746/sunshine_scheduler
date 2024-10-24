@@ -1,10 +1,10 @@
 package com.vindie.sunshine_scheduler.service;
 
-import com.vindie.sunshine_scheduler.dto.*;
 import com.vindie.sunshine_scheduler.service.cache.CacheService;
 import com.vindie.sunshine_scheduler.service.engine.Engine;
 import com.vindie.sunshine_scheduler.service.engine.SmalRules;
-import com.vindie.sunshine_scheduler.util.KafkaSender;
+import com.vindie.sunshine_scheduler.util.RabbitMQProducerService;
+import com.vindie.sunshine_scheduler_dto.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class SchServiceImpl implements SchService {
 
     private final CacheService cacheService;
-    private final KafkaSender kafkaSender;
+    private final RabbitMQProducerService rabbitMQProducerService;
 
     @Override
     @Async
@@ -32,10 +32,10 @@ public class SchServiceImpl implements SchService {
             result.setMatches(getMatches(schRequest.getAccounts()));
             result.setMetrics(getMetrics(schRequest.getAccounts()));
             cacheService.addResult(uuid, result);
-            kafkaSender.sendSchProgress(new SchProgress(uuid, SchProgress.Status.DONE));
+            rabbitMQProducerService.sendMessage(new SchProgress(uuid, SchProgress.Status.DONE));
         } catch (Exception e) {
             log.error("Error during sch uuid={}", uuid, e);
-            kafkaSender.sendSchProgress(new SchProgress(uuid, SchProgress.Status.ERROR));
+            rabbitMQProducerService.sendMessage(new SchProgress(uuid, SchProgress.Status.ERROR));
         }
     }
 
@@ -44,7 +44,7 @@ public class SchServiceImpl implements SchService {
 
         for (SchAccount theAccount : schRequest.getAccounts()) {
             if (schRequest.getAccounts().size() % 100 == 0)
-                kafkaSender.sendSchProgress(new SchProgress(uuid, SchProgress.Status.IN_PROGRESS));
+                rabbitMQProducerService.sendMessage(new SchProgress(uuid, SchProgress.Status.IN_PROGRESS));
             for (SchAccount acc : schRequest.getAccounts()) {
                 if (engine.main.test(theAccount, acc)) {
                     addMatchEachOther(theAccount, acc);

@@ -1,6 +1,6 @@
 package com.vindie.sunshine_scheduler.service.cache;
 
-import com.vindie.sunshine_scheduler.dto.SchResult;
+import com.vindie.sunshine_scheduler_dto.SchResult;
 
 public interface CacheService {
 
