@@ -1,10 +1,10 @@
-package com.vindie.sunshine_scheduler.dto;
+package com.vindie.sunshine_scheduler_dto;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
 
@@ -58,7 +58,7 @@ public class SchAccount {
                 ? Collections.emptyList()
                 : new HashSet<>(avoidMatches);
 
-        this.genders2relations = CollectionUtils.isEmpty(genders2relations)
+        this.genders2relations = genders2relations == null || genders2relations.isEmpty()
                 ? Collections.emptyMap()
                 : new EnumMap<>(genders2relations);
 

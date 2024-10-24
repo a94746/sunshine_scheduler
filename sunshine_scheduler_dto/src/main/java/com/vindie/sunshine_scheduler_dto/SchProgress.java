@@ -1,4 +1,4 @@
-package com.vindie.sunshine_scheduler.dto;
+package com.vindie.sunshine_scheduler_dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

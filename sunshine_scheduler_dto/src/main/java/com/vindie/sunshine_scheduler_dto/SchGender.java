@@ -1,4 +1,4 @@
-package com.vindie.sunshine_scheduler.dto;
+package com.vindie.sunshine_scheduler_dto;
 
 public enum SchGender {
     MALE,
